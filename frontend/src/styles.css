@@ -1,16 +1,19 @@
+/* ── Western Union dark-mode design tokens ────────── */
 :root {
-  --bg: #f5f7fb;
-  --surface: #ffffff;
-  --border: #e4e7ec;
-  --text: #101828;
-  --muted: #667085;
-  --accent: #2e5aac;
-  --accent-soft: #e0e8f5;
-  --warning-bg: #fff8e1;
-  --warning-border: #f0c36d;
-  --warning-text: #7a5a12;
-  --defect: #c23a3a;
-  --sp: #2e5aac;
+  --bg:             #0D0D0D;
+  --surface:        #1A1A1A;
+  --surface-raised: #222222;
+  --border:         #2E2E2E;
+  --text:           #F0F0F0;
+  --muted:          #888888;
+  --accent:         #FFDD00;   /* WU Yellow */
+  --accent-soft:    rgba(255, 221, 0, 0.12);
+  --accent-text:    #000000;   /* text on yellow bg must be black */
+  --warning-bg:     #1F1800;
+  --warning-border: #FFDD00;
+  --warning-text:   #FFDD00;
+  --defect:         #FF5555;
+  --sp:             #FFDD00;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -28,16 +31,22 @@ body {
   padding: 32px 24px 64px;
 }
 
+/* ── Header ──────────────────────────────────────── */
 header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--accent);
 }
 
 h1 {
   font-size: 24px;
+  font-weight: 700;
   margin: 0;
+  color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 h1 .sub {
@@ -47,6 +56,7 @@ h1 .sub {
   margin-left: 8px;
 }
 
+/* ── Upload card ─────────────────────────────────── */
 .upload-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -59,35 +69,48 @@ h1 .sub {
   align-items: center;
 }
 
+/* ── Buttons ─────────────────────────────────────── */
 button, .button-like {
   background: var(--accent);
-  color: white;
+  color: var(--accent-text);
   border: none;
   border-radius: 8px;
   padding: 9px 16px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
+  transition: opacity 0.15s;
+}
+
+button:hover, .button-like:hover {
+  opacity: 0.88;
 }
 
 button.secondary, .button-like.secondary {
   background: var(--accent-soft);
   color: var(--accent);
+  border: 1px solid rgba(255, 221, 0, 0.3);
+}
+
+button.secondary:hover, .button-like.secondary:hover {
+  background: rgba(255, 221, 0, 0.2);
+  opacity: 1;
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
+/* ── Utility ─────────────────────────────────────── */
 .muted { color: var(--muted); font-size: 14px; }
 
 .error {
-  color: #b42318;
-  background: #fef3f2;
-  border: 1px solid #fecdca;
+  color: #FF8080;
+  background: #2A0000;
+  border: 1px solid #5A0000;
   border-radius: 8px;
   padding: 10px 14px;
   margin: 12px 0;
@@ -105,6 +128,7 @@ button:disabled {
 }
 .warnings ul { margin: 4px 0 0 18px; padding: 0; }
 
+/* ── Tiles ───────────────────────────────────────── */
 .tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -117,11 +141,29 @@ button:disabled {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 18px 20px;
+  border-left: 3px solid var(--accent);
 }
-.tile .label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
-.tile .value { font-size: 32px; font-weight: 600; margin-top: 6px; color: var(--text); }
-.tile .unit  { color: var(--muted); font-size: 14px; margin-left: 6px; }
+.tile .label {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.tile .value {
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 6px;
+  color: var(--accent);
+}
+.tile .unit {
+  color: var(--muted);
+  font-size: 14px;
+  margin-left: 6px;
+  font-weight: 400;
+}
 
+/* ── Report sections ─────────────────────────────── */
 .report {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -130,13 +172,15 @@ button:disabled {
   margin-bottom: 20px;
 }
 .report h2 {
-  margin: 0 0 12px 0;
-  font-size: 18px;
+  margin: 0 0 6px 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
 }
 .report .caption {
   color: var(--muted);
-  font-size: 14px;
-  margin: -4px 0 16px 0;
+  font-size: 13px;
+  margin: 0 0 18px 0;
 }
 
 .report-grid {
@@ -149,6 +193,7 @@ button:disabled {
   .report-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Tables ──────────────────────────────────────── */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -160,13 +205,19 @@ th, td {
   border-bottom: 1px solid var(--border);
 }
 th {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--muted);
-  background: #f9fafb;
-  font-size: 13px;
+  background: var(--surface-raised);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+tr:hover td {
+  background: rgba(255, 221, 0, 0.04);
 }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
+/* ── Empty state ─────────────────────────────────── */
 .empty-state {
   padding: 24px;
   text-align: center;
@@ -190,11 +241,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 .filter-bar .filter-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
 .filter-toggle {
@@ -204,6 +255,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   font-size: 14px;
   cursor: pointer;
   user-select: none;
+  color: var(--text);
 }
 
 .filter-toggle input[type="checkbox"] {
@@ -244,6 +296,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .tab-btn.active {
   color: var(--accent);
   border-bottom-color: var(--accent);
+  font-weight: 600;
 }
 
 /* ── Member checkboxes ───────────────────────────── */
@@ -261,6 +314,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   font-size: 14px;
   cursor: pointer;
   user-select: none;
+  color: var(--text);
 }
 
 .member-check input[type="checkbox"] {
@@ -271,8 +325,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 .member-check--all {
-  font-weight: 500;
-  color: var(--text);
+  font-weight: 600;
   margin-right: 8px;
   padding-right: 16px;
   border-right: 1px solid var(--border);
@@ -296,9 +349,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 .sprint-bar label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   white-space: nowrap;
 }
 
@@ -308,7 +363,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   padding: 8px 12px;
   font-size: 14px;
   color: var(--text);
-  background: var(--surface);
+  background: var(--surface-raised);
   cursor: pointer;
   min-width: 200px;
 }
@@ -320,14 +375,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .sprint-title {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   margin: 0;
-}
-
-footer {
-  margin-top: 32px;
-  color: var(--muted);
-  font-size: 12px;
-  text-align: center;
 }

@@ -33,7 +33,7 @@ function SPByAssigneeReport({ rows }) {
         Sums story points on issues with status in Done / Closed / Resolved, grouped by Assignee.
       </p>
       <div className="report-grid">
-        <ReportChart data={rows} xKey="assignee" yKey="story_points" color="#2e5aac" unit="SP" />
+        <ReportChart data={rows} xKey="assignee" yKey="story_points" color="#FFDD00" unit="SP" />
         {rows.length === 0 ? (
           <div className="empty-state">No delivered issues with story points.</div>
         ) : (
@@ -69,7 +69,7 @@ function DefectsByAssigneeReport({ rows }) {
         Counts every row with Issue Type = Bug or Defect, grouped by Assignee (all statuses).
       </p>
       <div className="report-grid">
-        <ReportChart data={rows} xKey="assignee" yKey="defect_count" color="#c23a3a" unit="defects" />
+        <ReportChart data={rows} xKey="assignee" yKey="defect_count" color="#FF5555" unit="defects" />
         {rows.length === 0 ? (
           <div className="empty-state">No defects found in the file.</div>
         ) : (

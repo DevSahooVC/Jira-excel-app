@@ -11,9 +11,12 @@ import {
 } from 'recharts'
 
 const COLORS = [
-  '#2e5aac', '#c23a3a', '#2ea87e', '#e08c2f', '#7c3aed',
-  '#db2777', '#0891b2', '#65a30d', '#9f1239', '#b45309',
+  '#FFDD00', '#FF5555', '#33D17A', '#FF9F43', '#A29BFE',
+  '#FD79A8', '#00CEC9', '#B8E994', '#E17055', '#74B9FF',
 ]
+
+const DARK_TICK = '#888888'
+const DARK_GRID = '#2E2E2E'
 
 export default function IndividualPerformance({ report, includeBugs }) {
   const sprints = report.sprints || []
@@ -124,11 +127,34 @@ export default function IndividualPerformance({ report, includeBugs }) {
 
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={chartData} margin={{ top: 8, right: 24, bottom: 8, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="sprint" tick={{ fontSize: 13 }} />
-              <YAxis allowDecimals={false} />
-              <Tooltip formatter={(value, name) => [`${value} SP`, name]} />
-              <Legend />
+              <CartesianGrid strokeDasharray="3 3" stroke={DARK_GRID} />
+              <XAxis
+                dataKey="sprint"
+                tick={{ fill: DARK_TICK, fontSize: 13 }}
+                axisLine={{ stroke: DARK_GRID }}
+                tickLine={{ stroke: DARK_GRID }}
+              />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fill: DARK_TICK, fontSize: 12 }}
+                axisLine={{ stroke: DARK_GRID }}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: '#222222',
+                  border: '1px solid #3A3A3A',
+                  borderRadius: 8,
+                  color: '#F0F0F0',
+                  fontSize: 13,
+                }}
+                itemStyle={{ color: '#F0F0F0' }}
+                labelStyle={{ color: '#FFDD00', fontWeight: 600 }}
+                formatter={(value, name) => [`${value} SP`, name]}
+              />
+              <Legend
+                wrapperStyle={{ color: '#F0F0F0', fontSize: 13, paddingTop: 12 }}
+              />
               {selectedList.map((name) => (
                 <Line
                   key={name}
