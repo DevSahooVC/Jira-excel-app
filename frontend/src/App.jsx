@@ -150,9 +150,7 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>
-          Jira Excel Reporter <span className="sub">v0.1</span>
-        </h1>
+        <h1>QLP Sprint Performance Report</h1>
       </header>
 
       <UploadForm onReport={handleReport} onError={setError} onLoading={setLoading} />
@@ -238,7 +236,6 @@ export default function App() {
         </p>
       )}
 
-      <footer>FastAPI + React — story-points &amp; defect reports from an Excel/CSV extract.</footer>
     </div>
   )
 }
