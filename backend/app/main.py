@@ -15,9 +15,11 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from .aggregator import (
+    aggregate_sprint,
     defects_by_assignee,
     story_points_by_assignee,
     total_story_points_delivered,
+    unique_sprints,
 )
 from .models import AnalyzeResponse
 from .parser import parse_jira_file
@@ -95,12 +97,16 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
     total_sp, total_delivered = total_story_points_delivered(issues)
+    sprints = unique_sprints(issues)
+    by_sprint = {s: aggregate_sprint(issues, s) for s in sprints}
 
     return AnalyzeResponse(
         total_story_points_delivered=total_sp,
         total_issues_delivered=total_delivered,
         story_points_by_assignee=story_points_by_assignee(issues),
         defects_by_assignee=defects_by_assignee(issues),
+        sprints=sprints,
+        by_sprint=by_sprint,
         filename=filename,
         total_rows=len(issues),
         warnings=warnings,

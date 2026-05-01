@@ -2,23 +2,23 @@ import React, { useState } from 'react'
 import UploadForm from './components/UploadForm.jsx'
 import ReportChart from './components/ReportChart.jsx'
 
-function Tiles({ report }) {
+function Tiles({ data }) {
   return (
     <div className="tiles">
       <div className="tile">
         <div className="label">Story points delivered</div>
         <div className="value">
-          {report.total_story_points_delivered}
+          {data.total_story_points_delivered}
           <span className="unit">SP</span>
         </div>
       </div>
       <div className="tile">
         <div className="label">Issues delivered</div>
-        <div className="value">{report.total_issues_delivered}</div>
+        <div className="value">{data.total_issues_delivered}</div>
       </div>
       <div className="tile">
         <div className="label">Rows in file</div>
-        <div className="value">{report.total_rows}</div>
+        <div className="value">{data.total_rows ?? '—'}</div>
       </div>
     </div>
   )
@@ -98,6 +98,31 @@ export default function App() {
   const [report, setReport] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [selectedSprint, setSelectedSprint] = useState('__all__')
+
+  function handleReport(data) {
+    setReport(data)
+    setSelectedSprint('__all__')
+  }
+
+  // Derive the active data slice based on sprint selection
+  const activeData = report
+    ? selectedSprint === '__all__' || !report.by_sprint?.[selectedSprint]
+      ? {
+          total_story_points_delivered: report.total_story_points_delivered,
+          total_issues_delivered: report.total_issues_delivered,
+          total_rows: report.total_rows,
+          story_points_by_assignee: report.story_points_by_assignee,
+          defects_by_assignee: report.defects_by_assignee,
+        }
+      : {
+          ...report.by_sprint[selectedSprint],
+          total_rows: undefined,
+        }
+    : null
+
+  const sprintTitle =
+    selectedSprint === '__all__' ? 'All Sprints' : selectedSprint
 
   return (
     <div className="app">
@@ -107,7 +132,7 @@ export default function App() {
         </h1>
       </header>
 
-      <UploadForm onReport={setReport} onError={setError} onLoading={setLoading} />
+      <UploadForm onReport={handleReport} onError={setError} onLoading={setLoading} />
 
       {loading && <div className="muted">Analyzing…</div>}
       {error && <div className="error">{error}</div>}
@@ -124,9 +149,27 @@ export default function App() {
               </ul>
             </div>
           )}
-          <Tiles report={report} />
-          <SPByAssigneeReport rows={report.story_points_by_assignee} />
-          <DefectsByAssigneeReport rows={report.defects_by_assignee} />
+
+          {report.sprints?.length > 0 && (
+            <div className="sprint-bar">
+              <label htmlFor="sprint-select">Sprint</label>
+              <select
+                id="sprint-select"
+                value={selectedSprint}
+                onChange={(e) => setSelectedSprint(e.target.value)}
+              >
+                <option value="__all__">All Sprints</option>
+                {report.sprints.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <h2 className="sprint-title">{sprintTitle}</h2>
+            </div>
+          )}
+
+          <Tiles data={activeData} />
+          <SPByAssigneeReport rows={activeData.story_points_by_assignee} />
+          <DefectsByAssigneeReport rows={activeData.defects_by_assignee} />
         </>
       )}
 

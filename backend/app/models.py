@@ -15,6 +15,15 @@ class PerAssigneeDefects(BaseModel):
     defect_count: int
 
 
+class SprintReport(BaseModel):
+    """Aggregated report for a single sprint (or all sprints combined)."""
+
+    total_story_points_delivered: float
+    total_issues_delivered: int
+    story_points_by_assignee: list[PerAssigneeStoryPoints]
+    defects_by_assignee: list[PerAssigneeDefects]
+
+
 class AnalyzeResponse(BaseModel):
     """Full response for POST /api/analyze."""
 
@@ -24,6 +33,16 @@ class AnalyzeResponse(BaseModel):
     total_issues_delivered: int
     story_points_by_assignee: list[PerAssigneeStoryPoints]
     defects_by_assignee: list[PerAssigneeDefects]
+
+    # Sprint support
+    sprints: list[str] = Field(
+        default_factory=list,
+        description="Sorted list of unique sprint names found in the file.",
+    )
+    by_sprint: dict[str, SprintReport] = Field(
+        default_factory=dict,
+        description="Per-sprint aggregated reports keyed by sprint name.",
+    )
 
     # Handy context for the UI
     filename: str

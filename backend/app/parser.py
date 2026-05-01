@@ -31,7 +31,36 @@ HEADER_PATTERNS: dict[str, list[str]] = {
         r"story\s*point\s*estimate",
         r"custom\s*field\s*\(story\s*points\)",
     ],
+    "sprint": [
+        r"^sprint$",
+        r"^sprint\s*name$",
+        r"custom\s*field\s*\(sprint\)",
+    ],
 }
+
+_SPRINT_NAME_RE = re.compile(r"name=([^,\]]+)", re.IGNORECASE)
+
+
+def _parse_sprint_name(value: Any) -> str | None:
+    """Extract a human-readable sprint name from a raw Jira sprint field value.
+
+    Jira can export sprints as a complex string like:
+        com.atlassian.greenhopper...Sprint@abc[id=1,...,name=Sprint 3,...]
+    or simply as the sprint name directly.
+    Multiple sprints may appear comma-separated; we take the last one (most recent).
+    """
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    # Try to extract name= from complex Jira sprint string
+    matches = _SPRINT_NAME_RE.findall(raw)
+    if matches:
+        return matches[-1].strip()
+    # Fall back: if there are commas, take the last segment
+    parts = [p.strip() for p in raw.split(",") if p.strip()]
+    return parts[-1] if parts else raw
 
 # Issue types we treat as "plannable work" when Status is missing.
 DELIVERABLE_TYPES_WHEN_NO_STATUS = {"story", "task", "bug"}
@@ -169,12 +198,15 @@ def parse_jira_file(file_bytes: bytes, filename: str) -> tuple[list[dict], list[
                 else None
             )
 
+        sprint = _parse_sprint_name(row.get(mapping["sprint"]) if mapping["sprint"] else None)
+
         issues.append(
             {
                 "issue_type": issue_type,
                 "assignee": assignee,
                 "status": status,
                 "story_points": story_points,
+                "sprint": sprint,
             }
         )
 

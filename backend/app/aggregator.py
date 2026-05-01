@@ -1,7 +1,7 @@
 """Pure aggregation functions.
 
 These work on an already-normalized list of issue dicts with lowercase keys:
-    issue_type, assignee, status, story_points
+    issue_type, assignee, status, story_points, sprint
 
 Every report function is side-effect free and deterministic so it can be
 unit-tested without the FastAPI layer.
@@ -89,3 +89,25 @@ def defects_by_assignee(issues: Iterable[dict]) -> list[dict]:
     rows = [{"assignee": who, "defect_count": n} for who, n in counts.items()]
     rows.sort(key=lambda r: (-r["defect_count"], r["assignee"]))
     return rows
+
+
+def unique_sprints(issues: Iterable[dict]) -> list[str]:
+    """Return sorted list of unique, non-null sprint names found in the issues."""
+    seen: set[str] = set()
+    for it in issues:
+        sprint = it.get("sprint")
+        if sprint:
+            seen.add(str(sprint).strip())
+    return sorted(seen)
+
+
+def aggregate_sprint(issues: list[dict], sprint: str | None) -> dict:
+    """Return aggregation dict for a single sprint (or all issues if sprint is None)."""
+    subset = issues if sprint is None else [it for it in issues if it.get("sprint") == sprint]
+    total_sp, total_delivered = total_story_points_delivered(subset)
+    return {
+        "total_story_points_delivered": total_sp,
+        "total_issues_delivered": total_delivered,
+        "story_points_by_assignee": story_points_by_assignee(subset),
+        "defects_by_assignee": defects_by_assignee(subset),
+    }
