@@ -97,16 +97,23 @@ async def analyze(file: UploadFile = File(...)) -> AnalyzeResponse:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
     total_sp, total_delivered = total_story_points_delivered(issues)
+    total_sp_ex, total_delivered_ex = total_story_points_delivered(issues, exclude_bugs=True)
+
     sprints = unique_sprints(issues)
     by_sprint = {s: aggregate_sprint(issues, s) for s in sprints}
+    by_sprint_ex = {s: aggregate_sprint(issues, s, exclude_bugs=True) for s in sprints}
 
     return AnalyzeResponse(
         total_story_points_delivered=total_sp,
         total_issues_delivered=total_delivered,
         story_points_by_assignee=story_points_by_assignee(issues),
         defects_by_assignee=defects_by_assignee(issues),
+        total_story_points_delivered_ex_bugs=total_sp_ex,
+        total_issues_delivered_ex_bugs=total_delivered_ex,
+        story_points_by_assignee_ex_bugs=story_points_by_assignee(issues, exclude_bugs=True),
         sprints=sprints,
         by_sprint=by_sprint,
+        by_sprint_ex_bugs=by_sprint_ex,
         filename=filename,
         total_rows=len(issues),
         warnings=warnings,

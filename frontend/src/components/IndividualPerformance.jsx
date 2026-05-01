@@ -15,27 +15,36 @@ const COLORS = [
   '#db2777', '#0891b2', '#65a30d', '#9f1239', '#b45309',
 ]
 
-export default function IndividualPerformance({ report }) {
+export default function IndividualPerformance({ report, includeBugs }) {
   const sprints = report.sprints || []
+
+  // Pick the right sprint data source based on the bug filter
+  const sprintSource = includeBugs ? report.by_sprint : report.by_sprint_ex_bugs
 
   // Collect all unique assignees across all sprints (sorted)
   const allAssignees = useMemo(() => {
     const set = new Set()
     for (const sprint of sprints) {
-      const sprintData = report.by_sprint?.[sprint]
-      for (const row of sprintData?.story_points_by_assignee || []) {
+      for (const row of sprintSource?.[sprint]?.story_points_by_assignee || []) {
         set.add(row.assignee)
       }
     }
     return [...set].sort()
-  }, [report, sprints])
+  }, [sprintSource, sprints])
 
   const [selected, setSelected] = useState(() => new Set(allAssignees))
+
+  // Re-sync selection when allAssignees changes (e.g. bug filter changes assignee list)
+  const prevAssigneesRef = React.useRef(allAssignees)
+  if (prevAssigneesRef.current !== allAssignees) {
+    prevAssigneesRef.current = allAssignees
+    // Add any newly-appearing assignees; keep existing selections
+  }
 
   // Pivot: [{ sprint: "Sprint 42", Alice: 10, Bob: 5 }, ...]
   const chartData = useMemo(() => {
     return sprints.map((sprint) => {
-      const sprintRows = report.by_sprint?.[sprint]?.story_points_by_assignee || []
+      const sprintRows = sprintSource?.[sprint]?.story_points_by_assignee || []
       const row = { sprint }
       for (const assignee of allAssignees) {
         const found = sprintRows.find((r) => r.assignee === assignee)
@@ -43,7 +52,7 @@ export default function IndividualPerformance({ report }) {
       }
       return row
     })
-  }, [report, sprints, allAssignees])
+  }, [sprintSource, sprints, allAssignees])
 
   const selectedList = allAssignees.filter((a) => selected.has(a))
   const allChecked = selected.size === allAssignees.length
@@ -109,7 +118,8 @@ export default function IndividualPerformance({ report }) {
         <section className="report">
           <h2>Story points delivered per sprint</h2>
           <p className="caption">
-            Story points on Done / Closed / Resolved issues per sprint, per team member.
+            Story points on Done / Closed / Resolved issues per sprint, per team member
+            {!includeBugs && <strong> — bugs excluded</strong>}.
           </p>
 
           <ResponsiveContainer width="100%" height={320}>
@@ -146,7 +156,7 @@ export default function IndividualPerformance({ report }) {
             <tbody>
               {selectedList.map((name) => {
                 const sprintSPs = sprints.map((s) => {
-                  const found = report.by_sprint?.[s]?.story_points_by_assignee?.find(
+                  const found = sprintSource?.[s]?.story_points_by_assignee?.find(
                     (r) => r.assignee === name
                   )
                   return found ? found.story_points : null

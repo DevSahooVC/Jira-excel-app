@@ -101,31 +101,51 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [selectedSprint, setSelectedSprint] = useState('__all__')
   const [activeTab, setActiveTab] = useState('sprint')
+  const [includeBugs, setIncludeBugs] = useState(true)
 
   function handleReport(data) {
     setReport(data)
     setSelectedSprint('__all__')
     setActiveTab('sprint')
+    setIncludeBugs(true)
   }
 
-  // Derive the active data slice based on sprint selection
+  // Pick the right data slice based on sprint selection and bug filter
   const activeData = report
-    ? selectedSprint === '__all__' || !report.by_sprint?.[selectedSprint]
-      ? {
-          total_story_points_delivered: report.total_story_points_delivered,
-          total_issues_delivered: report.total_issues_delivered,
+    ? (() => {
+        const sprintKey = selectedSprint === '__all__' ? null : selectedSprint
+        const sprintSrc = sprintKey
+          ? (includeBugs ? report.by_sprint?.[sprintKey] : report.by_sprint_ex_bugs?.[sprintKey])
+          : null
+
+        if (sprintSrc) {
+          return {
+            total_story_points_delivered: sprintSrc.total_story_points_delivered,
+            total_issues_delivered: sprintSrc.total_issues_delivered,
+            total_rows: undefined,
+            story_points_by_assignee: sprintSrc.story_points_by_assignee,
+            defects_by_assignee: sprintSrc.defects_by_assignee ?? report.by_sprint?.[sprintKey]?.defects_by_assignee ?? [],
+          }
+        }
+
+        // "All sprints" view
+        return {
+          total_story_points_delivered: includeBugs
+            ? report.total_story_points_delivered
+            : report.total_story_points_delivered_ex_bugs,
+          total_issues_delivered: includeBugs
+            ? report.total_issues_delivered
+            : report.total_issues_delivered_ex_bugs,
           total_rows: report.total_rows,
-          story_points_by_assignee: report.story_points_by_assignee,
+          story_points_by_assignee: includeBugs
+            ? report.story_points_by_assignee
+            : report.story_points_by_assignee_ex_bugs,
           defects_by_assignee: report.defects_by_assignee,
         }
-      : {
-          ...report.by_sprint[selectedSprint],
-          total_rows: undefined,
-        }
+      })()
     : null
 
-  const sprintTitle =
-    selectedSprint === '__all__' ? 'All Sprints' : selectedSprint
+  const sprintTitle = selectedSprint === '__all__' ? 'All Sprints' : selectedSprint
 
   return (
     <div className="app">
@@ -152,6 +172,18 @@ export default function App() {
               </ul>
             </div>
           )}
+
+          <div className="filter-bar">
+            <span className="filter-label">Filters</span>
+            <label className="filter-toggle">
+              <input
+                type="checkbox"
+                checked={includeBugs}
+                onChange={(e) => setIncludeBugs(e.target.checked)}
+              />
+              Include bugs in story points
+            </label>
+          </div>
 
           <div className="tabs">
             <button
@@ -194,7 +226,7 @@ export default function App() {
           )}
 
           {activeTab === 'individual' && (
-            <IndividualPerformance report={report} />
+            <IndividualPerformance report={report} includeBugs={includeBugs} />
           )}
         </>
       )}

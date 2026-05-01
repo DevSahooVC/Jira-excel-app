@@ -38,12 +38,19 @@ def _assignee_display(name: str | None) -> str:
     return str(name).strip()
 
 
-def total_story_points_delivered(issues: Iterable[dict]) -> tuple[float, int]:
-    """Return (sum_story_points, issue_count) for delivered issues."""
+def total_story_points_delivered(
+    issues: Iterable[dict], *, exclude_bugs: bool = False
+) -> tuple[float, int]:
+    """Return (sum_story_points, issue_count) for delivered issues.
+
+    If exclude_bugs is True, issues with issue_type Bug/Defect are skipped.
+    """
     total = 0.0
     count = 0
     for it in issues:
         if not _is_delivered(it.get("status")):
+            continue
+        if exclude_bugs and _is_defect(it.get("issue_type")):
             continue
         sp = it.get("story_points")
         if sp is None:
@@ -53,12 +60,19 @@ def total_story_points_delivered(issues: Iterable[dict]) -> tuple[float, int]:
     return round(total, 2), count
 
 
-def story_points_by_assignee(issues: Iterable[dict]) -> list[dict]:
-    """Story points delivered grouped by assignee, sorted desc by points."""
+def story_points_by_assignee(
+    issues: Iterable[dict], *, exclude_bugs: bool = False
+) -> list[dict]:
+    """Story points delivered grouped by assignee, sorted desc by points.
+
+    If exclude_bugs is True, issues with issue_type Bug/Defect are skipped.
+    """
     sums: dict[str, float] = defaultdict(float)
     counts: dict[str, int] = defaultdict(int)
     for it in issues:
         if not _is_delivered(it.get("status")):
+            continue
+        if exclude_bugs and _is_defect(it.get("issue_type")):
             continue
         sp = it.get("story_points")
         if sp is None:
@@ -101,13 +115,15 @@ def unique_sprints(issues: Iterable[dict]) -> list[str]:
     return sorted(seen)
 
 
-def aggregate_sprint(issues: list[dict], sprint: str | None) -> dict:
+def aggregate_sprint(
+    issues: list[dict], sprint: str | None, *, exclude_bugs: bool = False
+) -> dict:
     """Return aggregation dict for a single sprint (or all issues if sprint is None)."""
     subset = issues if sprint is None else [it for it in issues if it.get("sprint") == sprint]
-    total_sp, total_delivered = total_story_points_delivered(subset)
+    total_sp, total_delivered = total_story_points_delivered(subset, exclude_bugs=exclude_bugs)
     return {
         "total_story_points_delivered": total_sp,
         "total_issues_delivered": total_delivered,
-        "story_points_by_assignee": story_points_by_assignee(subset),
+        "story_points_by_assignee": story_points_by_assignee(subset, exclude_bugs=exclude_bugs),
         "defects_by_assignee": defects_by_assignee(subset),
     }
