@@ -32,14 +32,10 @@ app = FastAPI(
 _ROOT = Path(__file__).resolve().parent.parent
 _BUNDLE_ROOT = Path(getattr(__import__("sys"), "_MEIPASS", _ROOT))  # type: ignore[attr-defined]
 
-# Dev-friendly CORS — Vite dev server runs on 5173 by default.
+# Dev-friendly CORS — allow all origins for Replit proxy compatibility.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-    ],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
