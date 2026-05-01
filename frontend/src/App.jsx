@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import UploadForm from './components/UploadForm.jsx'
 import ReportChart from './components/ReportChart.jsx'
+import IndividualPerformance from './components/IndividualPerformance.jsx'
 
 function Tiles({ data }) {
   return (
@@ -99,10 +100,12 @@ export default function App() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [selectedSprint, setSelectedSprint] = useState('__all__')
+  const [activeTab, setActiveTab] = useState('sprint')
 
   function handleReport(data) {
     setReport(data)
     setSelectedSprint('__all__')
+    setActiveTab('sprint')
   }
 
   // Derive the active data slice based on sprint selection
@@ -150,26 +153,49 @@ export default function App() {
             </div>
           )}
 
-          {report.sprints?.length > 0 && (
-            <div className="sprint-bar">
-              <label htmlFor="sprint-select">Sprint</label>
-              <select
-                id="sprint-select"
-                value={selectedSprint}
-                onChange={(e) => setSelectedSprint(e.target.value)}
-              >
-                <option value="__all__">All Sprints</option>
-                {report.sprints.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              <h2 className="sprint-title">{sprintTitle}</h2>
-            </div>
+          <div className="tabs">
+            <button
+              className={`tab-btn${activeTab === 'sprint' ? ' active' : ''}`}
+              onClick={() => setActiveTab('sprint')}
+            >
+              Sprint Reports
+            </button>
+            <button
+              className={`tab-btn${activeTab === 'individual' ? ' active' : ''}`}
+              onClick={() => setActiveTab('individual')}
+            >
+              Individual Performance
+            </button>
+          </div>
+
+          {activeTab === 'sprint' && (
+            <>
+              {report.sprints?.length > 0 && (
+                <div className="sprint-bar">
+                  <label htmlFor="sprint-select">Sprint</label>
+                  <select
+                    id="sprint-select"
+                    value={selectedSprint}
+                    onChange={(e) => setSelectedSprint(e.target.value)}
+                  >
+                    <option value="__all__">All Sprints</option>
+                    {report.sprints.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                  <h2 className="sprint-title">{sprintTitle}</h2>
+                </div>
+              )}
+
+              <Tiles data={activeData} />
+              <SPByAssigneeReport rows={activeData.story_points_by_assignee} />
+              <DefectsByAssigneeReport rows={activeData.defects_by_assignee} />
+            </>
           )}
 
-          <Tiles data={activeData} />
-          <SPByAssigneeReport rows={activeData.story_points_by_assignee} />
-          <DefectsByAssigneeReport rows={activeData.defects_by_assignee} />
+          {activeTab === 'individual' && (
+            <IndividualPerformance report={report} />
+          )}
         </>
       )}
 
