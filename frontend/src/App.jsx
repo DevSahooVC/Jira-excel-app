@@ -43,6 +43,8 @@ function SPByAssigneeReport({ rows }) {
                 <th>Assignee</th>
                 <th className="num">Issues</th>
                 <th className="num">Story points</th>
+                <th className="num">Bugs</th>
+                <th className="num">Bug SP</th>
               </tr>
             </thead>
             <tbody>
@@ -51,6 +53,8 @@ function SPByAssigneeReport({ rows }) {
                   <td>{r.assignee}</td>
                   <td className="num">{r.issue_count}</td>
                   <td className="num">{r.story_points}</td>
+                  <td className="num">{r.bug_count ?? 0}</td>
+                  <td className="num">{r.bug_story_points ?? 0}</td>
                 </tr>
               ))}
             </tbody>

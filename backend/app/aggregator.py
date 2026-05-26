@@ -65,11 +65,20 @@ def story_points_by_assignee(
 ) -> list[dict]:
     """Story points delivered grouped by assignee, sorted desc by points.
 
-    If exclude_bugs is True, issues with issue_type Bug/Defect are skipped.
+    If exclude_bugs is True, issues with issue_type Bug/Defect are skipped
+    from the SP aggregation. The bug_count / bug_story_points columns
+    *always* reflect every Bug/Defect issue (any status) assigned to that
+    person — they are unaffected by the exclude_bugs flag.
     """
+    issues_list = list(issues)
+
     sums: dict[str, float] = defaultdict(float)
     counts: dict[str, int] = defaultdict(int)
-    for it in issues:
+    bug_counts: dict[str, int] = defaultdict(int)
+    bug_sps: dict[str, float] = defaultdict(float)
+
+    # SP aggregation (respects exclude_bugs / delivered filter)
+    for it in issues_list:
         if not _is_delivered(it.get("status")):
             continue
         if exclude_bugs and _is_defect(it.get("issue_type")):
@@ -80,8 +89,25 @@ def story_points_by_assignee(
         who = _assignee_display(it.get("assignee"))
         sums[who] += float(sp)
         counts[who] += 1
+
+    # Bug aggregation (all statuses, all bugs)
+    for it in issues_list:
+        if not _is_defect(it.get("issue_type")):
+            continue
+        who = _assignee_display(it.get("assignee"))
+        bug_counts[who] += 1
+        sp = it.get("story_points")
+        if sp is not None:
+            bug_sps[who] += float(sp)
+
     rows = [
-        {"assignee": who, "story_points": round(sums[who], 2), "issue_count": counts[who]}
+        {
+            "assignee": who,
+            "story_points": round(sums[who], 2),
+            "issue_count": counts[who],
+            "bug_count": bug_counts.get(who, 0),
+            "bug_story_points": round(bug_sps.get(who, 0.0), 2),
+        }
         for who in sums
     ]
     rows.sort(key=lambda r: (-r["story_points"], r["assignee"]))

@@ -8,6 +8,8 @@ class PerAssigneeStoryPoints(BaseModel):
     assignee: str
     story_points: float
     issue_count: int
+    bug_count: int = 0
+    bug_story_points: float = 0.0
 
 
 class PerAssigneeDefects(BaseModel):

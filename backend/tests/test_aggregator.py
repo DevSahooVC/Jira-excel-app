@@ -68,8 +68,20 @@ def test_sp_by_assignee_groups_and_sorts_desc():
         _issue(assignee="Ben", story_points=1, status="In Progress"),  # not delivered
     ]
     rows = story_points_by_assignee(issues)
-    assert rows[0] == {"assignee": "Ava", "story_points": 11, "issue_count": 2}
-    assert rows[1] == {"assignee": "Ben", "story_points": 5, "issue_count": 1}
+    assert rows[0] == {
+        "assignee": "Ava",
+        "story_points": 11,
+        "issue_count": 2,
+        "bug_count": 0,
+        "bug_story_points": 0.0,
+    }
+    assert rows[1] == {
+        "assignee": "Ben",
+        "story_points": 5,
+        "issue_count": 1,
+        "bug_count": 0,
+        "bug_story_points": 0.0,
+    }
 
 
 def test_sp_by_assignee_treats_blank_as_unassigned():
@@ -79,12 +91,53 @@ def test_sp_by_assignee_treats_blank_as_unassigned():
         _issue(assignee="   ", story_points=1),
     ]
     rows = story_points_by_assignee(issues)
-    assert rows == [{"assignee": "Unassigned", "story_points": 6, "issue_count": 3}]
+    assert rows == [
+        {
+            "assignee": "Unassigned",
+            "story_points": 6,
+            "issue_count": 3,
+            "bug_count": 0,
+            "bug_story_points": 0.0,
+        }
+    ]
 
 
 def test_sp_by_assignee_empty_when_no_delivered():
     issues = [_issue(status="In Progress", story_points=5)]
     assert story_points_by_assignee(issues) == []
+
+
+def test_sp_by_assignee_includes_bug_columns_all_statuses():
+    """Bug count/SP always reflect every Bug/Defect assigned (any status),
+    independent of the exclude_bugs flag."""
+    issues = [
+        _issue(assignee="Ava", story_points=5),
+        _issue(assignee="Ava", story_points=3, issue_type="Bug"),  # delivered bug
+        _issue(
+            assignee="Ava",
+            story_points=2,
+            issue_type="Bug",
+            status="In Progress",
+        ),  # open bug
+        _issue(assignee="Ben", story_points=4),
+    ]
+    rows = story_points_by_assignee(issues)
+    ava = next(r for r in rows if r["assignee"] == "Ava")
+    ben = next(r for r in rows if r["assignee"] == "Ben")
+    # Ava delivered SP includes the delivered bug (8), bug stats include both bugs (2 / 5 SP)
+    assert ava["story_points"] == 8
+    assert ava["bug_count"] == 2
+    assert ava["bug_story_points"] == 5.0
+    assert ben["bug_count"] == 0
+    assert ben["bug_story_points"] == 0.0
+
+    # With exclude_bugs, Ava's SP drops to 5 but bug columns still show 2 / 5
+    rows_ex = story_points_by_assignee(issues, exclude_bugs=True)
+    ava_ex = next(r for r in rows_ex if r["assignee"] == "Ava")
+    assert ava_ex["story_points"] == 5
+    assert ava_ex["issue_count"] == 1
+    assert ava_ex["bug_count"] == 2
+    assert ava_ex["bug_story_points"] == 5.0
 
 
 # ---------------------------------------------------------------------------
