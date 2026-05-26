@@ -10,6 +10,7 @@ class PerAssigneeStoryPoints(BaseModel):
     issue_count: int
     bug_count: int = 0
     bug_story_points: float = 0.0
+    defect_density: float | None = None
 
 
 class PerAssigneeDefects(BaseModel):

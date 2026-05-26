@@ -76,6 +76,8 @@ def story_points_by_assignee(
     counts: dict[str, int] = defaultdict(int)
     bug_counts: dict[str, int] = defaultdict(int)
     bug_sps: dict[str, float] = defaultdict(float)
+    delivered_bug_sps: dict[str, float] = defaultdict(float)
+    delivered_feature_sps: dict[str, float] = defaultdict(float)
 
     # SP aggregation (respects exclude_bugs / delivered filter)
     for it in issues_list:
@@ -90,15 +92,26 @@ def story_points_by_assignee(
         sums[who] += float(sp)
         counts[who] += 1
 
-    # Bug aggregation (all statuses, all bugs)
+    # Bug aggregation (all statuses, all bugs) + delivered split for density
     for it in issues_list:
-        if not _is_defect(it.get("issue_type")):
-            continue
+        is_bug = _is_defect(it.get("issue_type"))
+        sp_raw = it.get("story_points")
         who = _assignee_display(it.get("assignee"))
-        bug_counts[who] += 1
-        sp = it.get("story_points")
-        if sp is not None:
-            bug_sps[who] += float(sp)
+        if is_bug:
+            bug_counts[who] += 1
+            if sp_raw is not None:
+                bug_sps[who] += float(sp_raw)
+        if _is_delivered(it.get("status")) and sp_raw is not None:
+            if is_bug:
+                delivered_bug_sps[who] += float(sp_raw)
+            else:
+                delivered_feature_sps[who] += float(sp_raw)
+
+    def _density(who: str) -> float | None:
+        feature_sp = delivered_feature_sps.get(who, 0.0)
+        if feature_sp <= 0:
+            return None
+        return round(delivered_bug_sps.get(who, 0.0) / feature_sp * 100, 1)
 
     rows = [
         {
@@ -107,6 +120,7 @@ def story_points_by_assignee(
             "issue_count": counts[who],
             "bug_count": bug_counts.get(who, 0),
             "bug_story_points": round(bug_sps.get(who, 0.0), 2),
+            "defect_density": _density(who),
         }
         for who in sums
     ]

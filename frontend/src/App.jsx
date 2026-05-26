@@ -45,6 +45,9 @@ function SPByAssigneeReport({ rows }) {
                 <th className="num">Story points</th>
                 <th className="num">Bugs</th>
                 <th className="num">Bug SP</th>
+                <th className="num" title="Delivered bug SP / delivered feature SP">
+                  Defect density
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -55,6 +58,9 @@ function SPByAssigneeReport({ rows }) {
                   <td className="num">{r.story_points}</td>
                   <td className="num">{r.bug_count ?? 0}</td>
                   <td className="num">{r.bug_story_points ?? 0}</td>
+                  <td className="num">
+                    {r.defect_density == null ? '—' : `${r.defect_density}%`}
+                  </td>
                 </tr>
               ))}
             </tbody>

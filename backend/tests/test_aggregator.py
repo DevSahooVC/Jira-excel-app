@@ -74,6 +74,7 @@ def test_sp_by_assignee_groups_and_sorts_desc():
         "issue_count": 2,
         "bug_count": 0,
         "bug_story_points": 0.0,
+        "defect_density": 0.0,
     }
     assert rows[1] == {
         "assignee": "Ben",
@@ -81,6 +82,7 @@ def test_sp_by_assignee_groups_and_sorts_desc():
         "issue_count": 1,
         "bug_count": 0,
         "bug_story_points": 0.0,
+        "defect_density": 0.0,
     }
 
 
@@ -98,6 +100,7 @@ def test_sp_by_assignee_treats_blank_as_unassigned():
             "issue_count": 3,
             "bug_count": 0,
             "bug_story_points": 0.0,
+            "defect_density": 0.0,
         }
     ]
 
@@ -138,6 +141,30 @@ def test_sp_by_assignee_includes_bug_columns_all_statuses():
     assert ava_ex["issue_count"] == 1
     assert ava_ex["bug_count"] == 2
     assert ava_ex["bug_story_points"] == 5.0
+
+
+def test_sp_by_assignee_defect_density():
+    """Defect density = delivered bug SP / delivered feature SP, as percent."""
+    issues = [
+        # Ava: 10 SP feature delivered + 3 SP bug delivered + 5 SP bug open (ignored)
+        _issue(assignee="Ava", story_points=10),
+        _issue(assignee="Ava", story_points=3, issue_type="Bug"),
+        _issue(
+            assignee="Ava", story_points=5, issue_type="Bug", status="In Progress"
+        ),
+        # Ben: 8 SP feature delivered, no bugs
+        _issue(assignee="Ben", story_points=8),
+    ]
+    rows = story_points_by_assignee(issues)
+    ava = next(r for r in rows if r["assignee"] == "Ava")
+    ben = next(r for r in rows if r["assignee"] == "Ben")
+    assert ava["defect_density"] == 30.0  # 3 / 10
+    assert ben["defect_density"] == 0.0
+
+    # Density is invariant under exclude_bugs toggle
+    rows_ex = story_points_by_assignee(issues, exclude_bugs=True)
+    ava_ex = next(r for r in rows_ex if r["assignee"] == "Ava")
+    assert ava_ex["defect_density"] == 30.0
 
 
 # ---------------------------------------------------------------------------
