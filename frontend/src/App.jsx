@@ -43,8 +43,8 @@ function SPByAssigneeReport({ rows }) {
                 <th>Assignee</th>
                 <th className="num">Issues</th>
                 <th className="num">Story points</th>
-                <th className="num">Bugs</th>
-                <th className="num">Bug SP</th>
+                <th className="num">Defects</th>
+                <th className="num">Defect Story</th>
                 <th className="num" title="Delivered bug SP / delivered feature SP">
                   Defect density
                 </th>
