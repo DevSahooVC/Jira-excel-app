@@ -44,9 +44,9 @@ export default function IndividualPerformance({ report, includeBugs }) {
     // Add any newly-appearing assignees; keep existing selections
   }
 
-  // Pivot: [{ sprint: "Sprint 42", Alice: 10, Bob: 5 }, ...]
+  // Pivot: [{ sprint: "Sprint 42", Alice: 10, Bob: 5, "Alice__r3": 7.3 }, ...]
   const chartData = useMemo(() => {
-    return sprints.map((sprint) => {
+    const rows = sprints.map((sprint) => {
       const sprintRows = sprintSource?.[sprint]?.story_points_by_assignee || []
       const row = { sprint }
       for (const assignee of allAssignees) {
@@ -55,6 +55,15 @@ export default function IndividualPerformance({ report, includeBugs }) {
       }
       return row
     })
+    // Rolling 3-sprint average per assignee
+    rows.forEach((row, i) => {
+      for (const assignee of allAssignees) {
+        const window = rows.slice(Math.max(0, i - 2), i + 1)
+        const avg = window.reduce((sum, r) => sum + (r[assignee] ?? 0), 0) / window.length
+        row[`${assignee}__r3`] = Math.round(avg * 10) / 10
+      }
+    })
+    return rows
   }, [sprintSource, sprints, allAssignees])
 
   const selectedList = allAssignees.filter((a) => selected.has(a))
@@ -150,10 +159,16 @@ export default function IndividualPerformance({ report, includeBugs }) {
                 }}
                 itemStyle={{ color: '#F0F0F0' }}
                 labelStyle={{ color: '#FFDD00', fontWeight: 600 }}
-                formatter={(value, name) => [`${value} SP`, name]}
+                formatter={(value, name) => [
+                  `${value} SP`,
+                  name.endsWith('__r3') ? `${name.replace('__r3', '')} · 3-sp avg` : name,
+                ]}
               />
               <Legend
                 wrapperStyle={{ color: '#F0F0F0', fontSize: 13, paddingTop: 12 }}
+                formatter={(value) =>
+                  value.endsWith('__r3') ? `${value.replace('__r3', '')} · 3-sp avg` : value
+                }
               />
               {selectedList.map((name) => (
                 <Line
@@ -164,6 +179,18 @@ export default function IndividualPerformance({ report, includeBugs }) {
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   activeDot={{ r: 6 }}
+                />
+              ))}
+              {selectedList.map((name) => (
+                <Line
+                  key={`${name}__r3`}
+                  type="monotone"
+                  dataKey={`${name}__r3`}
+                  stroke={colorFor(name)}
+                  strokeWidth={1.5}
+                  strokeDasharray="6 3"
+                  dot={false}
+                  activeDot={false}
                 />
               ))}
             </LineChart>
